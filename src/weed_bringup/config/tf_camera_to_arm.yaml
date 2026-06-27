@@ -1,0 +1,11 @@
+tf_camera_to_arm:
+  parent_frame: camera_color_optical_frame
+  child_frame: arm_base
+  translation:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  rotation_rpy:
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0

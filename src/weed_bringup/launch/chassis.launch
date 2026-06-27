@@ -1,0 +1,5 @@
+<launch>
+  <rosparam file="$(find weed_bringup)/config/chassis.yaml" command="load"/>
+
+  <node pkg="chassis_bridge" type="chassis_bridge_node" name="chassis_bridge" output="screen"/>
+</launch>

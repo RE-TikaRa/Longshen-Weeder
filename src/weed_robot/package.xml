@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>weed_robot</name>
+  <version>0.1.0</version>
+  <description>Metapackage for the Longshen Weeder ROS workspace.</description>
+
+  <maintainer email="154001438+RE-TikaRa@users.noreply.github.com">RE-TikaRa</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>orbbec_camera</exec_depend>
+  <exec_depend>plant_msgs</exec_depend>
+  <exec_depend>plant_detection</exec_depend>
+  <exec_depend>plant_tracking</exec_depend>
+  <exec_depend>plant_depth</exec_depend>
+  <exec_depend>weed_tf</exec_depend>
+  <exec_depend>weed_decision</exec_depend>
+  <exec_depend>chassis_bridge</exec_depend>
+  <exec_depend>serial_bridge</exec_depend>
+  <exec_depend>weed_monitor</exec_depend>
+  <exec_depend>weed_bringup</exec_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>

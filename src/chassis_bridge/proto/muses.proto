@@ -1,0 +1,698 @@
+// 2023-02-15 for Muses_ros main branch V1.1.0
+// RTK navigation robot communication protocal.
+// Created by fengql <jianhouxifeng1222@gmail.com>
+
+syntax = "proto3";
+package proto;
+option optimize_for = LITE_RUNTIME;
+
+enum MessageType {
+    MSG_REQUEST = 0; // 请求
+    MSG_RESPONSE = 1; // 响应
+    MSG_COMMAND = 2; // 命令
+    MSG_NOTIFICATION = 3; // 通知
+}
+
+message Message {
+    MessageType type = 1;
+    fixed32 seq = 2;
+    fixed64 session_id = 3;
+
+    Request request = 4;
+    Response response = 5;
+    Command command = 6;
+    Notification notification = 7;
+}
+
+message RobotParam {
+    int32 gnss_center_x = 1;                    // GNSS天线距离机器人中心纵向距离（mm）
+    int32 gnss_center_y = 2;                    // GNSS天线距离机器人中心横向距离 (mm)
+    int32 gnss_imu_x = 3;                       // GNSS天线距离IMU的纵向距离 (mm)
+    int32 gnss_imu_y = 4;                       // GNSS天线距离IMU的横向距离 (mm)
+    int32 gnss_imu_z = 5;                       // GNSS天线距离IMU的Z轴距离  (mm)
+    int32 angle = 6;                            // 天线安装方向(0, 90, 180, -90) (°)
+    int32 wheelbase = 7;                        // 机器人轴距 (mm)
+    int32 dist_full_cover = 8;                  // 机器人覆盖宽度 （mm）
+    int32 dist_off_route_4mc = 9;               // 机器人脱离路网的距离 (mm)
+    int32 dist_off_route_4pp = 10;                // 机器人自动导航到站点或者路线的距离 （mm）
+    int32 linear_speed_max = 11;                 // 机器人最大线速度值 (m/s * 1000上传)
+    int32 rotate_speed_max = 12;                 // 机器人最大角速度值 (rad/s * 1000上传)
+}
+
+// 1. 请求数据
+message Request {
+    enum RequestType {
+        REQUEST_LOGIN = 0;                      // 登录
+        REQUEST_INFO = 1;                       // 获取软硬件信息
+        REQUEST_SYSTEM_STATE = 2;               // 获取系统状态
+        REQUEST_HARDWARE_STATE = 3;             // 获取硬件状态
+        REQUEST_MAP_LIST = 4;                   // 获取地图列表
+        REQUEST_LOGOUT = 5;                     // 退出
+        REQUEST_MAPNAME = 6;                    // 获取目前在使用的地图名称
+
+        REQUEST_IMPORT_MAP_FILE = 10;           // 导入地图文件
+        REQUEST_IMPORT_CONFIG_FILE = 11;        // 导入配置文件
+        REQUEST_IMPORT_SATELLITE_LLA_FILE = 12; // 导入卫星地图打点文件
+        REQUEST_IMPORT_SYSTEM_UPDATE_FILE = 13; // 导入升级包
+        REQUEST_STATE = 14;
+        REQUEST_SYSTEM_STATE_ONCE = 15;         // 单次获取系统状态
+        REQUEST_HARDWARE_STATE_ONCE = 16;       // 单次获取硬件状态
+        REQUEST_BASE_LLA = 17;                  // 获取基准点LLA文件名字
+        REQUEST_IMPORT_GNSS_RECEIVER = 18;      // 导入打点文件
+        REQUEST_IMU_CONFIGURATION = 19;         // 配置IMU参数
+        REQUEST_UPDATE_VCU = 20;                // 升级VCU程序
+        REQUEST_SWITCH_MAP = 21;                // 切换地图
+        REQUEST_TASKING = 22;                   // 查询是否有在运行的任务 
+        REQUEST_ON_ROUTE_NET = 23;              // 查询机器人是否在路网上
+        REQUEST_SET_MAX_SPEED = 24;             // 设置机器人最大线速度和角速度
+        REQUEST_SET_ANTENNA_POSITION = 25;      // 设置机器人天线位置（x, y）
+        REQUEST_SET_ANTENNA_IMU_POSITION = 26;  // 设置机器人定位天线到IMU位置（x, y, z, angle）
+        REQUEST_SET_OFF_ROUTE_DIST = 27;        // 设置机器人脱离路网的距离（dist）
+        REQUEST_SET_OFF_ROUTE_PP = 28;          // 设置机器人距离路网多远可以执行自动导航指令
+        REQUEST_SET_ROBOT_WIDTH = 29;           // 设置机器人宽度
+        REQUEST_SET_ROBOT_COV_WIDTH = 30;       // 设置机器人覆盖宽度
+        REQUEST_NTRIP_PRODUCER = 31;            // 设置NTRIP账户名密码
+        REQUEST_CONFIGURATION_PARAM = 32;       // 读取机器人所有配置参数
+    }
+    RequestType request_type = 1;
+    LoginRequest login_request = 2;
+    string satellitemap_name = 3;               // satellite json文件名称
+    string mapfile_name = 4;                    // map json路网文件名称
+    string gnssreceiverfile_name = 5;           // 全覆盖打点文件
+    string vcuupdatefile_name = 6;              // vcu升级文件
+    bool   curve2turn = 7;                      // ture 全覆盖路径规划加入Dubins曲线
+    int32  linear_speed_max = 8;                // 设置最大线速度参数（实际速度*1000上传）
+    int32  rotate_speed_max = 9;                // 设置最大角速度参数（实际速度*1000上传）
+    int32  gnss_base_x = 10;                    // 设置天线距离机器人中心的纵向位置（实际距离 * 1000上传）
+    int32  gnss_base_y = 11;                    // 设置天线距离机器人中心的横向位置（实际距离 * 1000上传）
+    int32  vector_x = 12;                       // 设置天线距离IMU中心的纵向距离 （实际距离 * 1000上传）
+    int32  vector_y = 13;                       // 设置天线距离IMU中心的横向距离 （实际距离 * 1000上传）
+    int32  vector_z = 14;                       // 设置天线距离IMU的高度距离 （实际距离 * 1000上传）
+    int32  angle = 15;                          // 设置天线安装角度（两种安装方式，如果左（主天线）右安装设置90 前（主天线）后安装设置180）
+    int32  off_route_dist = 16;                 // 设置脱离路网的距离（*1000上传）
+    int32  off_route_dist_pp = 17;              // 设置自动导航到路网的距离（*1000上传）
+    int32  width = 18;                          // 机器人宽度/ 覆盖宽度 （* 1000上传）
+    int32  ntrip_id = 19;                       // Ntrip厂家ID
+    string ntrip_account = 20;                  // Ntrip用户名
+    string ntrip_password = 21;                 // Ntrip密码
+}
+
+// 2. 响应请求
+message Response {
+    enum ResponseType {
+        RESPONSE_LOGIN = 0;
+        RESPONSE_INFO = 1;
+        RESPONSE_SYSTEM_STATE = 2;
+        RESPONSE_HARDWARE_STATE = 3;
+        RESPONSE_MAP_LIST = 4;
+        RESPONSE_LOGOUT = 5;
+        RESPONSE_MAPNAME = 6;        //获取目前在使用的地图名称
+
+
+        RESPONSE_IMPORT_MAP_FILE = 10; // 导入地图文件
+        RESPONSE_IMPORT_CONFIG_FILE = 11; // 导入配置文件
+        RESPONSE_IMPORT_SATELLITE_LLA_FILE = 12; // 导入卫星地图打点文件
+        RESPONSE_IMPORT_SYSTEM_UPDATE_FILE = 13; // 导入升级包
+
+        RESPONSE_COMMAND = 20;              // 响应Command
+        RESPONSE_NOTIFY = 21;               // 响应Notify
+        RESPONSE_BASE_LLA = 22;             // 响应Base_lla
+        RESPONSE_IMPORT_GNSS_RECEIVER = 23; // 响应接收到打点器文件
+        RESPONSE_IMU_CONFIGURATION = 24;    // 响应IMU配置
+        RESPONSE_VCU_UPDATE = 25;           // 响应VCU升级
+        RESPONSE_SWITCH_MAP = 26;           // 切换地图
+        RESPONSE_TASKING = 27;              // 响应任务请求
+        RESPONSE_SET_MAX_SPEED = 28;        // 响应设置最大线速度和角速度
+        RESPONSE_SET_ANTENNA_POSITION = 29; // 响应设置天线距离机器人中心位置
+        RESPONSE_SET_OFF_ROUTE_DIST = 30;   // 响应设置机器人脱离路网的长度
+        RESPONSE_SET_OFF_ROUTE_PP = 31;     // 响应机器人距离多远可以执行自动导航指令
+        RESPONSE_SET_ROBOT_WIDTH = 32;      // 响应设置机器人宽度
+        RESPONSE_SET_ROBOT_COV_WIDTH = 33;  // 响应设置机器人覆盖宽度
+        RESPONSE_ON_ROUTE_NET = 34;         // 响应机器人是否在路网上
+        RESPONSE_SET_ANTENNA_IMU_POSITION = 35; // 响应设计主天线到imu位置的配置
+        RESPONSE_NTRIP_CONFIGURATION = 36;      // 响应设置Ntrip参数
+        RESPONSE_CONFIGURATION_PARAM = 37;      // 响应查询机器人参数
+    }
+    ResponseType response_type = 1;
+
+    LoginInfo login_info = 2; // 登录应答
+    Info info = 3; // 返回系统信息
+    SystemState system_state = 4;       // 系统状态信息
+    HardwareState hardware_state = 5;   // 硬件状态信息
+    MapList map_list = 6;               // 地图列表
+    string  map_name = 7;               // 正在使用的地图名称
+    string  map_md5 = 8;                // 正在使用的地图的MD5值
+
+    Result result = 10;                 // ** init this message for every response
+    NotifyResponse notify_response = 11; // ** true if notify received
+    Lla    lla = 12;
+    string base_satellite_name = 13;
+    string base_satellite_md5 = 14;
+    bool   task_run = 15;               // 是否有任务在进行
+    string task_name = 16;              // 任务名称
+    bool   on_route_net = 17;           // 机器人是否在路网上
+    TaskID taskid = 18;                 // RESPONSE_TASKING REPEATED id
+    RobotParam robo_param = 19;         // 查询机器人信息反馈
+}
+
+// 3. 命令
+enum CommandType {
+    CMD_ZERO = 0;
+    CMD_HEARTBEATS_UPDATE = 0x01;       // 心跳信息更新，10s发送一次
+    CMD_ENABLE_MANUAL_CONTROL = 0x02;   // 手动模式
+    CMD_DISABLE_MANUAL_CONTROL = 0x03;  // 自动模式
+    CMD_SET_MANUAL_SPEED = 0x04;        // 设置手动模式运动速度
+    CMD_SET_SPEED_LEVEL = 0x05;         // 设置自动导航速度等级，0-100
+
+    CMD_PAUSE_MOVEMENT = 0x07;          // 暂停
+    CMD_CONTINUE_MOVEMENT = 0x08;       // 继续
+    CMD_STOP_MOVEMENT = 0x09;           // 停止
+    CMD_ENABLE_OBSTACLE_AVOID = 0x0A;   // 启用避障
+    CMD_DISABLE_OBSTACLE_AVOID = 0x0B;  // 停用避障
+    
+    CMD_NEW_MOVEMENT_TASK = 0x10;       // 新移动任务
+    CMD_CANCEL_MOVEMENT_TASK = 0x11;    // 移动任务取消
+    CMD_NEW_ACTION_TASK = 0x12;         // 新作业任务
+    CMD_CANCEL_ACTION_TASK = 0x13;      // 作业任务取消
+    
+    CMD_CANCEL_EMERGENCY = 0x15;        // 解除急停状态
+    CMD_TRIGGER_EMERGENCY = 0x16;       // 触发急停
+    CMD_ENABLE_AUTO_CHARGE = 0x17;      // 启动自动充电
+    CMD_STOP_CHARGE = 0x18;             // 停止充电
+    CMD_REBOOT_PLNS = 0x19;             // 重新启动PLNS
+    CMD_SYNC_TIME = 0x1A;               // 时间同步
+    CMD_CALIBRATION = 0x1B;             // 系统标定
+
+    CMD_SET_GENERAL_IO_OUPUT = 0x20;    // 设置IO输出状态
+    CMD_SET_SPEAKER_VOLUME = 0x21;      // 设置音量
+    CMD_EXTEND_CONTROL = 0x22;          // 外设扩展控制命令
+    CMD_FAN_CONTROL = 0x23;             // 风机
+    CMD_WATER_PUMP = 0x24;              // 水泵
+    CMD_LIGHT_CONTROL = 0x25;           // 大灯
+    CMD_BUZZER        = 0x26;           // 蜂鸣器
+    CMD_MOWER         = 0x27;
+    CMD_MODE_IN_PHASE = 0x28;           // 手动控制同向模式
+    CMD_MODE_OPPOSITE_PHASE = 0x29;     // 手动控制反向模式
+    CMD_MODE_PIVOT_TURN = 0x30;         // 原地旋转
+    CMD_FULL_MOVEMENT_TASK = 0x31;      // 全部任务下发（参数为TaskId）
+    CMD_RESUME_FULL_MOVEMENT_TASK = 0x32;    // 恢复原任务（参数为TaskId）
+    CMD_CANCEL_FULL_MOVEMENT_TASK = 0x33;    // 取消全部任务
+    CMD_PAUSE_FULL_MOVEMENT_TASK = 0x34;     // 暂停全部任务
+    CMD_START_FULL_MOVEMENT_TASK = 0x35;     // 重新开始全部任务
+    CMD_RECORD_PATH_POINT = 0x36;            // 记录路径点
+    CMD_PARKING_TRIGGER = 0x37;              // 驻车模式触发
+    CMD_PARKING_CANCEL = 0x38;               // 驻车模式取消
+    CMD_DELETE_FULL_MOVEMENT_TASK = 0x39;    // 删除任务，有参数map_name
+    CMD_LASER_DETECTION_ENABLE = 0x40;        // 避障开关 参数为param_int
+    CMD_ROW_DETECTION = 0x41;                // 对行偏差 参数为param_int
+}
+
+message Command {
+    CommandType command = 1;
+
+    int32 param_int = 2;
+    int32 param_int1 = 3;
+    int32 param_int2 = 4;               // 可用于发送vy
+
+    Pose pose = 5;
+
+    string param_str = 6;
+    string param_str1 = 7;
+
+    MovementTask movement_task = 8;
+    ActionTask action_task = 9;
+
+    uint64 general_io_ouput = 10;
+    int32 extend_cmd = 11;              // 外设扩展控制命令，自定义
+    int32 fan_cmd = 12;                 // 0-100 停止时发 0
+    int32 water_pump_cmd = 13;          // 0-100 停止时发 0
+    int32 mower_cmd = 14;               // 0 停止 1 上升 2 下降
+    TaskID taskid = 15; 
+    string task_file_name = 16;         // 发送的task json文件名称  
+    string map_name = 17;               // 目前仅限CMD_DELETE_FULL_MOVEMENT_TASK使用             
+}
+
+message TaskID {
+    repeated int32 id = 1;
+}
+
+// 4. 通知
+message Notification {
+    enum NotifyType {
+        NOTIFY_MOVE_TASK_FINISHED = 0;
+        NOTIFY_ACTION_TASK_FINISHED = 1;
+        NOTIFY_CALIBRATION_FINISHED = 2;
+        NOTIFY_UPDATE_FINISHED = 3;
+        NOTIFY_MOVE_PATH_SENT = 4;
+    }
+    NotifyType notify_type = 1;
+
+    uint32 cur_station_no = 3;
+    Pose cur_pose = 4;
+    Result task_result = 5; // 移动任务和动作任务完成结果【成功/失败（原因）】
+
+    MovementTask movement_task = 10;
+    ActionTask action_task = 11;
+    CalibrationResult cal_result = 12;
+    UpdateResult update_result = 13;
+}
+
+// ------------------------------------------------- Notification
+message NotifyResponse {
+    bool ack = 1;
+    enum NotifyType {
+        NOTIFY_MOVE_TASK_FINISHED = 0;
+        NOTIFY_ACTION_TASK_FINISHED = 1;
+        NOTIFY_CALIBRATION_FINISHED = 2;
+        NOTIFY_UPDATE_FINISHED = 3;
+        NOTIFY_MOVE_PATH_SENT = 4;
+    }
+    NotifyType type = 2;
+}
+
+message CalibrationResult {
+    double x = 1;
+    double y = 2;
+    double theta = 3;
+    int32 status = 4;
+}
+
+message UpdateResult {
+    enum ResultCode {
+        UPDATE_SUCCESS = 0;
+        UPDATE_FAILED = 1;
+    }
+    ResultCode result_code = 1;
+}
+
+// --------------------------------------------------- Request
+message LoginRequest {
+    string username = 1; // 用户名，明文
+    string password = 2; // 密码，MD5加密后的密文（小写）
+}
+
+message LoginInfo {
+    fixed64 session_id = 1; // 登录成功返回对话ID，后面所有命令需带这个ID标识
+    string result_str = 2;
+}
+
+message Lla {
+    uint64 latidude = 1;
+    uint64 longitude = 2;
+    uint32 altitude = 3;
+}
+
+
+message Info {
+    string licence_valid = 1;       // 授权信息
+    string plns_serial_no = 2;      // 主控器硬件序列号
+    string hardware_version = 3;    // 硬件版本号
+    string tc_version = 4;          // 主控软件版本号
+    string base_version = 5;        // 驱动软件版本号
+    string vehicle_serial_no = 6;   // 车辆序列号
+}
+
+message FileInfo {
+    string name = 1;
+    string md5sum = 2;
+}
+
+message MapList {
+    uint32 req_seq = 1;
+    repeated FileInfo list = 2;
+}
+
+// --------------------------------------------------- Command
+message Pose {
+    int32 x = 1; // 单位mm
+    int32 y = 2;
+    int32 z = 3;
+
+    int32 roll = 4; // 单位(1/1000)rad
+    int32 pitch = 5;
+    int32 yaw = 6; // 航向角
+
+    int32 confidence = 7; // 置信度
+}
+
+message Path {
+    enum PathType {
+        PATH_ZERO = 0;
+        PATH_LINE = 1;
+        PATH_BEZIER = 2;
+        PATH_ROTATE = 3;
+    }
+    PathType type = 1;
+
+    int32 sx = 2; // 距离单位均为mm
+    int32 sy = 3;
+    int32 ex = 4;
+    int32 ey = 5;
+    int32 cx = 6;
+    int32 cy = 7;
+    int32 dx = 8;
+    int32 dy = 9;
+
+    int32 rotate_angle = 10; // 角度单位为1/1000 rad
+    int32 direction = 11; // 0x01->前进/顺时针；0x02->后退/逆时针
+    int32 obst_stop = 12; // 0x01->使能；0x00->关闭
+
+    int32 limit_v = 13;
+    int32 limit_w = 14;
+    int32 limit_acc = 15; // 路径加速度限制，默认0.3m/s^2
+    int32 limit_dec = 16; // 路径减速度限制，默认0.3m/s^2
+}
+
+enum TaskResult {
+    TASK_RESULT_NA = 0;         // 结果状态不可用
+    TASK_RESULT_OK = 1;         // 任务执行完成
+    TASK_RESULT_CANCELD = 2;    // 任务取消
+    TASK_RESULT_FAILED = 3;     // 任务执行出错
+}
+
+message MotionControlState {
+    enum MCState {
+        MC_ZERO = 0;
+        MC_INITIALING = 1;          // 初始化中
+        MC_IDLE = 2;                // 空闲状态
+        MC_PATH_RUNNING = 3;        // 正在执行路径
+        MC_VELOCITY_RUNNING = 4;    // 正在执行速度
+    }
+    MCState state = 1;
+
+    int32 v_x = 2; // 当前x方向线速度，单位mm/s
+    int32 v_y = 3; // 当前y方向线速度，单位mm/s
+    int32 w = 4; // 当前旋转角速度速度，单位(1/1000)rad/s
+    
+    int32 path_no = 5; // 当前执行的路径编号
+
+    int32 err_x = 6; // 当前跟踪误差x，单位mm
+    int32 err_y = 7; // 当前跟踪误差y，单位mm
+    int32 err_yaw = 8; // 当前跟踪误差yaw，单位(1/1000)rad
+}
+
+message MovementTask {
+    enum TaskState {
+        MT_NA = 0;
+        MT_WAIT_FOR_START = 1;
+        MT_RUNNING = 2; // 任务正在执行
+        MT_PAUSED = 3;
+        MT_FINISHED = 4;
+    }
+    TaskState state = 1;
+
+    int32 no = 2; // 移动任务编号
+    enum DstStationType {
+        DS_DEFAULT = 0;
+        DS_NO_ROTATE = 1; // 目标站点禁止旋转
+    }
+    DstStationType dst_station_type = 3;
+
+    enum TaskType {
+        MT_ZERO = 0;
+        MT_MOVE_FOLLOW_PATH = 1;
+        MT_MOVE_TO_STATION = 2;
+        MT_MOVE_TO_POSE = 3;
+        MT_MOVE_MIX2 = 4;
+        MT_MOVE_POSE_LINE = 5;
+    }
+    TaskType type = 4;
+
+    repeated uint32 stations = 5;
+    repeated Pose poses = 6;
+    repeated Path paths = 7;
+
+    enum AvoidPolicy {
+        AT_ZERO = 0;
+        OBSTACLE_AVOID_WAIT = 1;    // 暂停运动直至障碍消失
+        OBSTACLE_AVOID_REPLAN = 2;  // 重新规划路径绕过障碍
+        OBSTACLE_AVOID_NONE = 3;    // 不处理
+    }
+    AvoidPolicy avoid_policy = 8;   // 避障策略
+
+    int32 remain_time = 9;          // 剩余执行时间，单位s
+    int32 remain_distance = 10;     // 剩余里程，单位mm
+    int32 total_distance = 11;      // 路径里程，单位mm
+
+    TaskResult result = 12;
+}
+
+message ActionTask {
+    enum TaskState {
+        AT_NA = 0;
+        AT_WAIT_FOR_START = 1;
+        AT_RUNNING = 2; // 任务正在执行
+        AT_PAUSED = 3;
+        AT_FINISHED = 4;
+    }
+    TaskState state = 1;
+
+    int32 no = 2; // 作业任务编号
+    enum TaskType {
+        AT_ZERO = 0;
+        AT_WAITING_TIMEOUT  = 1;    // 等待
+        AT_TAKE_PHOTOS      = 2;    // 拍照
+        AT_SPRAY_LEFT_ON    = 3;    // 喷药左开
+        AT_SPRAY_LEFT_OFF   = 4;    // 喷药左关
+        AT_SPRAY_RIGHT_ON   = 5;    // 喷药右开
+        AT_SPRAY_RIGHT_OFF  = 6;    // 喷药右关
+        AT_SPRAY_ALL_ON     = 7;    // 全喷开
+        AT_SPRAY_ALL_OFF    = 8;    // 全喷关
+        AT_MOWER_UP         = 9;    // 割刀升
+        AT_MOWER_DOWN       = 10;   // 割刀降
+        AT_MOWER_STOP       = 11;   // 割刀停
+    }
+    TaskType type = 3;
+
+    int32 timeout = 4; // unit: second
+    TaskResult result = 5;
+}
+
+// --------------------------------------------------- Response
+message SystemState {
+    uint32 req_seq = 1;
+    enum SysState {
+        SYS_STATE_ZERO = 0;                 // 系统初始
+        SYS_STATE_INITIALING = 1;           // 系统正在初始化
+        SYS_STATE_IDLE = 2;                 // 系统空闲
+        SYS_STATE_ERROR = 3;                // 系统出错
+        SYS_STATE_HARDWARE_ERROR = 4;       // 硬件故障
+
+        SYS_STATE_TASK_MANUAL_PAUSED = 5;               // 手动暂停状态
+        SYS_STATE_TASK_NAV_INITIALING = 6;              // 导航正在初始化
+        SYS_STATE_TASK_NAV_WAITING_FINISH = 7;          // 正在等待到达目标位置
+        SYS_STATE_TASK_NAV_WAITING_FINISH_SLOW = 8;     // 检测到障碍，减速
+        SYS_STATE_TASK_NAV_PAUSED = 9;                  // 遇到障碍暂停运动
+        SYS_STATE_TASK_NAV_NO_WAY = 10;                 // 无法抵达目标位置
+        SYS_STATE_TASK_NAV_NO_STATION = 11;             // 无法检测到目标站点
+        SYS_STATE_TASK_NAV_PATH_ERROR = 12;             // 导航过程中路径出错：如偏离路径
+        SYS_STATE_EMERGENCY_TRIGGER = 13;               // 机器人硬件触发
+    }
+    SysState sys_state = 2;
+
+    enum LocationMode {
+        LOCATION_MODE_NONE = 0;
+        LOCATION_MODE_GNSS = 1; 		// 纯GNSS定位模式
+        LOCATION_MODE_INS = 2; 			// GNSS+IMU融合惯导
+    }
+    LocationMode location_mode = 3;
+
+    enum LocationState {
+        LOCATION_STATE_NONE = 0; 		// 定位未启动
+        LOCATION_STATE_SLEEPING = 1; 	// 定位休眠中
+        LOCATION_STATE_RUNNING = 2; 	// 定位正常
+        LOCATION_STATE_ERROR = 3; 		// 出错
+    }
+    LocationState location_state = 4;
+    Pose location_pose = 5;
+
+    enum EmergencyState {
+        STATE_EMERGENCY_NONE = 0; 		// 非急停状态
+        STATE_EMERGENCY_TRIGER = 1; 	// 急停状态触发
+    };
+
+    enum EmergencyReason {
+        STATE_EMERGENCY_REASON_NONE = 0;
+        STATE_LOCALIZATION_ERROR = 1;   // 定位错误
+        STATE_HARDWARE_ERROR = 2;       // 硬件错误
+        STATE_OFF_ROUTE = 3;            // 脱离路网
+        STATE_MANUAL = 4;               // 手动触发
+        STATE_EDGE_PROTECTOR = 5;       // 触边触发
+        STATE_ROBOT_BOTTON = 6;         // 机器人上急停按钮触发
+    };
+
+    EmergencyState emergency_state = 6;
+
+    MotionControlState mc_state = 7;
+    MovementTask movement_state = 8;
+    ActionTask action_state = 9;
+
+    string map_name = 10; 				// 当前系统正在使用的地图
+
+    enum OperationState {
+        OPERATION_MANUAL = 0; 			// 手动模式
+        OPERATION_AUTO = 1; 			// 自动模式
+    }
+    OperationState operation_state = 11;
+
+    enum GnssMsgState {
+        GNSS_MSG_INVALID = 0; 			// 无效
+        GNSS_MSG_SINGLE = 1; 			// 单点定位
+        GNSS_MSG_DIFF = 4; 				// 差分定位，有效
+        GNSS_MSG_FLOAT = 5; 			// 浮点定位
+    }
+    GnssMsgState gnss_msg_state = 12;
+    Pose gnss_pose = 13;
+    uint32 satellite_num = 14;
+
+    uint32 speed_level = 15;
+    uint32 fault_code  = 16;     		// 返回系统当前故障码 正常为0
+    uint32 total_mileage = 17;   		// 系统开机后总体里程，单位：m
+    UiState uiState = 18;
+    string total_time  = 19;     		// 系统开机后总时间，单位：h
+    uint32 all_mileage = 20;     		// 出生后总里程 单位: m
+    string all_time    = 21;    		// 出生后总时间 单位：h
+    uint64 latitude    = 22;
+    uint64 longitude   = 23;
+    uint64 altitude    = 24;
+	uint32 oil_level   = 25;
+	uint32 pesticide_level = 26;
+    EmergencyReason emergency_reason = 27;
+    string map_md5 = 28;                // 添加正在使用的地图的md5值，多APP地图切换校正
+
+}
+
+message HardwareState {
+    uint32 req_seq = 1;
+
+    // 基本硬件状态
+    //uint32 cpu_usage = 2; // cpu使用百分比，单位%
+    //uint32 memory_usage = 3; // 内存使用百分比，单位%
+    //uint32 disk_usage = 4; // 磁盘使用百分比，单位%
+    //uint32 remain_disk_space = 5; // 磁盘剩余空间，单位MB
+
+    // 电池状态
+    enum BatteryState {
+        BATTERY_NA = 0; // 状态不可用
+        BATTERY_CHARGING = 1; // 正在充电
+        BATTERY_NO_CHARGING = 2; // 未充电
+    }
+
+    BatteryState battery_state = 6; 	// 电池状态
+    uint32 battery_percentage = 7; 		// 剩余电量，单位%
+    uint32 battery_voltage = 8; 		// 电池当前电压，单位mV
+    int32 battery_current = 9; 			// 电池当前电流，单位mA
+    //int32 battery_tempreature = 10; 	// 电池温度，单位℃
+    //uint32 battery_remain_time = 11; 	// 电池预计剩余工作时间，单位min
+    
+    // WiFi状态
+    //enum WiFiState {
+    //    WIFI_NA = 0; // 状态不可用
+    //    WIFI_DISCONNECTED = 1;
+    //    WIFI_CONNECTED = 2;
+    //    WIFI_SCANNING = 3;
+    //}
+    //WiFiState wifi_state = 12; // WiFi状态
+    //string wifi_name = 13; // 连接的wifi名称
+    //uint32 wifi_strength = 14; // 信号强度，单位%
+
+    // GNSS设备连接状态
+    enum GnssState {
+        GNSS_NA = 0;
+        GNSS_DISCONNECTED = 1;
+        GNSS_CONNECTED = 2;
+    }
+    GnssState gnss_state = 15;
+
+    // 其他传感器状态
+    //int32 cpu_temperature   = 16;   // cpu当前的温度，单位℃
+    //int32 box_temprature    = 17;   // 机体内部温度，单位℃
+    //int32 fiquid_level      = 18;   // 0 - 100
+    //int32 fan_statu         = 19;   // 风机状态
+    //int32 water_pump_statu  = 20;   // 水泵状态
+    //int32 spray_statu       = 21;   // 喷药状态
+    //int32 light_statu       = 22;   // 灯光状态
+    
+}
+
+message Result {
+    enum ResultState {
+        RESPONSE_NONE = 0;
+        RESPONSE_PROCESSING = 1; 		// 处理中
+        RESPONSE_OK = 2; 				// 成功
+        RESPONSE_FAILED = 3; 			// 失败
+    }
+    ResultState result_state = 1;
+
+    enum ResultCode {
+        RESULT_CODE_NONE = 0;
+        RESULT_UNDEFINED = 1;                   // 无效命令
+        RESULT_INVALID_CMD_PARAM = 2;           // 参数错误
+        RESULT_USER_OR_PASSWROD_INVALID = 3;    // 用户名或密码错误
+
+        RESULT_SYSTEM_STATE_ERROR = 4;
+        RESULT_OPERATION_MODE_ERROR = 5;
+        RESULT_LOAD_MAP_FILE_ERROR = 6;
+        RESULT_PRE_TASK_RUNNING = 7;            // 前一个任务还在运行
+        RESULT_NAV_NO_WAY = 8;                  // 无法抵达目标位置
+        RESULT_NAV_NO_STATION = 9;              // 无法检测到目标站点
+        RESULT_NAV_PATH_PLAN_ERROR = 10;        // 路径搜索出错
+        RESULT_NAV_PLAN_STEP_ERROR = 11;        // 导航路径生成执行步骤出错
+        RESULT_NAV_MOTION_CONTROL_ERROR = 12;   // 导航过程中运控出错：如偏离路径
+        RESULT_LOGIN_OK = 13;                   // 登录成功
+        RESULT_LOGOUT_OK = 14;                  // 退出成功
+        RESULT_MAP_LIST_OK = 15;                // 获取地图成功
+        RESULT_IMPORT_MAP_FILE_OK = 16;         // 导入地图成功
+        RESULT_SYSTEM_UPDATE_FILE_OK = 17;      // 导入升级文件成功
+        RESULT_IMPORT_SATELLITE_LLA_FILE_OK = 18;   //导入零点文件成功
+        RESULT_REQUEST_MAPNAME_OK = 19;         // 获取正在使用的地图名称成功
+        RESULT_HEARTBEATS_UPDATE_OK = 20;       // 心跳发送成功
+        RESULT_ENABLE_MANUAL_CONTROL_OK = 21;   // 使能手动控制成功
+        RESULT_ENABLE_AUTO_CONTROL_OK = 22;     // 使能自动控制成功
+        RESULT_SET_SPEED_LEVEL_OK = 23;         // 设置速度级别成功
+        RESULT_MOVEMENT_TASK_OK = 24;           // 完成MOVMENT TASK
+        RESULT_ACTION_TASK_OK = 25;             // 完成ACTION TASK
+        RESULT_PAUSE_MOVEMENT_OK = 26;          // 暂停任务成功
+        RESULT_CONTINUE_MOVEMENT_OK = 27;       // 继续任务成功
+        RESULT_CANCEL_MOVEMENT_TASK_OK = 28;    // 结束任务成功
+        RESULT_TRIGGER_EMERGENCY_OK = 29;       // 触发急停成功
+        RESULT_CANCEL_EMERGENCY_OK = 30;        // 解除急停成功
+        RESULT_ENABLE_AUTO_CHARGE_OK = 31;      // 自动充电指令下发成功
+        RESULT_STOP_CHARGE_OK = 32;             // 暂停充电成功
+        RESULT_REBOOT_PLNS_OK = 33;             // 重启系统指令下发成功
+        RESULT_SYNC_TIME_OK = 34;               // 时间同步成功
+        RESULT_CALIBRATION_OK = 35;             // 设置零点成功
+        RESULT_CMD_MOWER_OK = 36;               // 割刀升降指令成功
+        RESULT_EXTEND_CONTROL_OK = 37;          // 外部IO指令下发成功
+        RESULT_FULL_COVERAGE_OK = 38;           // 全覆盖规划路径成功
+        RESULT_OPEN_COVERAGEFILE_FAILED  = 39;  // 打开全覆盖点文件失败
+        RESULT_WRITE_COVERAGEFILE_FAILED = 40;  // 写入全覆盖路径失败
+        RESULT_IMU_CONFIGURATION_OK      = 41;  // 配置IMU参数成功
+        RESULT_UPDATE_VCU_OK             = 42;  // 升级VCU固件成功
+        RESULT_COVERAGE_FILE_POINT_ERROR = 43;  // 全覆盖边界点异常
+        RESULT_COVERAGE_OBST_POINT_ERROR = 44;  // 全覆盖障碍物点异常
+        RESULT_NTRIP_PRODUCT_ERROR =       45;  // Ntrip厂家错误
+        RESULT_NTRIP_USER_PASSWORD_INVALID = 46; // 用户名或密码不合法
+        RESULT_CALIBRATION_FAILED = 47;          // 更新零点失败
+        RESULT_LOGIN_EXCEED_MAX_CONNECTION = 48; // APP超过最大连接数量
+    }
+    ResultCode result_code = 2;
+}
+
+// 系统状态，用于上位机登陆时同步，支持多上位机同步操控
+message UiState {
+    enum ParentState {
+        PARENT_STATE_NONE = 0;
+        PARENT_STATE_RUNNABLE = 1; // 可运行
+        PARENT_STATE_LOCALIZATION = 2; // 定位已启动
+        PARENT_STATE_HW_FAULT = 3; // 硬件故障
+    }
+    ParentState parent_state = 1;
+
+    enum ChildState {
+        CHILD_STATE_NONE = 0;
+        CHILD_STATE_MANUAL = 1; // 手动模式
+        CHILD_STATE_AUTO = 2; // 自动模式
+    }
+    ChildState child_state = 2;
+}

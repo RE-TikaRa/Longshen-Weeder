@@ -1,0 +1,5 @@
+<launch>
+  <rosparam file="$(find weed_bringup)/config/serial.yaml" command="load"/>
+
+  <node pkg="serial_bridge" type="serial_bridge_node" name="serial_bridge" output="screen"/>
+</launch>

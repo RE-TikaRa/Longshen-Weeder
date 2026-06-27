@@ -1,0 +1,6 @@
+serial:
+  port: /dev/ttyTHS1
+  baudrate: 115200
+  accepted_timeout_ms: 500
+  pong_timeout_ms: 3000
+  ping_interval_ms: 1000

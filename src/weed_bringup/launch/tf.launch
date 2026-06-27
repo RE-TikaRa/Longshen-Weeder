@@ -1,0 +1,5 @@
+<launch>
+  <rosparam file="$(find weed_bringup)/config/tf_camera_to_arm.yaml" command="load"/>
+
+  <node pkg="weed_tf" type="weed_tf_node" name="weed_tf" output="screen"/>
+</launch>

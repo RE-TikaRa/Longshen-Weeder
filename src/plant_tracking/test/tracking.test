@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="plant_tracking" type="plant_tracking_node" name="plant_tracking" output="log"/>
+  <test test-name="tracking_test" pkg="plant_tracking" type="plant_tracking_test"/>
+</launch>

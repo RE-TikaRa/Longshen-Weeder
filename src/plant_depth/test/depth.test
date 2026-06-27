@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="plant_depth" type="plant_depth_node" name="plant_depth" output="log"/>
+  <test test-name="depth_test" pkg="plant_depth" type="plant_depth_test"/>
+</launch>

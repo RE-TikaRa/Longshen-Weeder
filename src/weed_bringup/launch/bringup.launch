@@ -1,0 +1,7 @@
+<launch>
+  <include file="$(find weed_bringup)/launch/camera.launch"/>
+  <include file="$(find weed_bringup)/launch/tf.launch"/>
+  <include file="$(find weed_bringup)/launch/perception.launch"/>
+  <include file="$(find weed_bringup)/launch/chassis.launch"/>
+  <include file="$(find weed_bringup)/launch/arm.launch"/>
+</launch>

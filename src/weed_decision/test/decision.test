@@ -1,0 +1,15 @@
+<launch>
+  <rosparam>
+    arm_workspace:
+      x_min: 0.10
+      x_max: 0.45
+      y_min: -0.20
+      y_max: 0.20
+      z_min: 0.00
+      z_max: 0.25
+    tracker:
+      stable_frames: 3
+  </rosparam>
+  <node pkg="weed_decision" type="weed_decision_node" name="weed_decision" output="log"/>
+  <test test-name="decision_test" pkg="weed_decision" type="weed_decision_test" time-limit="60.0"/>
+</launch>

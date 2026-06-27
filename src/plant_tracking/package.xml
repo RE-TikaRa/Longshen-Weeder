@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>plant_tracking</name>
+  <version>0.1.0</version>
+  <description>Track crop and weed detections across frames.</description>
+
+  <maintainer email="154001438+RE-TikaRa@users.noreply.github.com">RE-TikaRa</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>plant_msgs</depend>
+  <depend>roscpp</depend>
+
+  <test_depend>rostest</test_depend>
+</package>

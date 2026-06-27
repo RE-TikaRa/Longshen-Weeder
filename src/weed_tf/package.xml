@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>weed_tf</name>
+  <version>0.1.0</version>
+  <description>Static camera to arm transform publisher package.</description>
+
+  <maintainer email="154001438+RE-TikaRa@users.noreply.github.com">RE-TikaRa</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+
+  <test_depend>rostest</test_depend>
+</package>

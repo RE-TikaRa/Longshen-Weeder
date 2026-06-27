@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>plant_detection</name>
+  <version>0.1.0</version>
+  <description>TensorRT YOLO detector for crop and weed targets.</description>
+
+  <maintainer email="154001438+RE-TikaRa@users.noreply.github.com">RE-TikaRa</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
+  <depend>plant_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>roslib</depend>
+  <depend>sensor_msgs</depend>
+</package>

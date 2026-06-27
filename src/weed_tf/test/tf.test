@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="weed_tf" type="weed_tf_node" name="weed_tf" output="log"/>
+  <test test-name="tf_test" pkg="weed_tf" type="weed_tf_test"/>
+</launch>

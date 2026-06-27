@@ -1,0 +1,12 @@
+<launch>
+  <rosparam file="$(find weed_bringup)/config/detector.yaml" command="load"/>
+  <rosparam file="$(find weed_bringup)/config/tracker.yaml" command="load"/>
+  <rosparam file="$(find weed_bringup)/config/depth.yaml" command="load"/>
+  <rosparam file="$(find weed_bringup)/config/arm_workspace.yaml" command="load"/>
+
+  <node pkg="plant_detection" type="plant_detection_node" name="plant_detection" output="screen"/>
+  <node pkg="plant_tracking" type="plant_tracking_node" name="plant_tracking" output="screen"/>
+  <node pkg="plant_depth" type="plant_depth_node" name="plant_depth" output="screen"/>
+  <node pkg="weed_decision" type="weed_decision_node" name="weed_decision" output="screen"/>
+  <node pkg="weed_monitor" type="weed_monitor_node" name="weed_monitor" output="screen"/>
+</launch>
