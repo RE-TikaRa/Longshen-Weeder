@@ -1,5 +1,5 @@
 serial:
-  port: /dev/ttyTHS1
+  port: /dev/ttyUSB0
   baudrate: 115200
   accepted_timeout_ms: 500
   pong_timeout_ms: 3000

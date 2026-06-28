@@ -16,7 +16,7 @@ public:
     : private_nh_("~")
     , serial_(io_)
   {
-    private_nh_.param<std::string>("/serial/port", port_, "/dev/ttyTHS1");
+    private_nh_.param<std::string>("/serial/port", port_, "/dev/ttyUSB0");
     private_nh_.param("/serial/baudrate", baudrate_, 115200);
     private_nh_.param("/serial/ping_interval_ms", ping_interval_ms_, 1000);
     private_nh_.param("/serial/pong_timeout_ms", pong_timeout_ms_, 3000);

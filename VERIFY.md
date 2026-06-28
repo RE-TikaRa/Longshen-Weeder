@@ -158,10 +158,27 @@ rostopic echo -n1 /plant/points               # 终端 C：depth_valid 与 point
 
 ### 第 9 项 serial_bridge（ESP32-S3）
 
+连接方式：Jetson USB-A ──USB 线──→ ESP32 的 **COM** 口（板载 CH340/CP210x 转串口，桥接 ESP32 UART0）。一根线搞定，不接排针、不用管电平。
+
+```text
+Jetson USB ── USB线 ── ESP32 COM 口 ── CH340/CP210x ── ESP32 UART0
+```
+
+ESP32 板上那对单独的 RX/TX 排针通常与 COM 口并联在 UART0，用 COM 口连 Jetson 时不要再占用这对排针。电机若走 PWM/step/dir 用别的 GPIO，与此无关；电机若是总线舵机/串口驱动器，固件另开 UART1/2 映射到其它空闲 GPIO，避开 strapping（GPIO0/3/45/46）。
+
+识别设备名（USB 串口编号随插入顺序变，插拔确认）：
+
+```bash
+ls /dev/ttyUSB* /dev/ttyACM*                  # 插 USB 前后各看一次，新增的即是
+sudo chmod 777 /dev/ttyUSB0                    # 或加入 dialout 组：sudo usermod -aG dialout $USER
+```
+
+CH340/CP210x 多枚举为 `/dev/ttyUSB0`，少数板子为 `/dev/ttyACM0`。若与实际不符，改 `serial.yaml` 的 `port`。多个 USB 串口共存时编号会漂移，建议用 `/dev/serial/by-id/<稳定名>` 软链。
+
 真实串口：
 
 ```bash
-ls -l /dev/ttyTHS1                            # 确认设备存在、有读写权限
+ls -l /dev/ttyUSB0                            # 确认设备存在、有读写权限
 roslaunch weed_bringup arm.launch
 rostopic echo /serial/status                  # 期望 online
 rostopic echo /arm/state                      # ESP32 回帧后出 ACCEPTED/BUSY/DONE...
